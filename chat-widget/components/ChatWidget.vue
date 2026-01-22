@@ -1,34 +1,18 @@
 <script setup lang="ts">
 import { nextTick, watch, computed } from 'vue'
-import { marked } from 'marked'
-import DOMPurify from 'dompurify'
 
 const props = defineProps<{
   sessionName: string
 }>()
 
-const emit = defineEmits<{
-  (e: 'debugUrl', url: string): void
-}>()
-
 const {
   messages,
-  conversations,
   isLoading,
-  isCreatingConversation,
-  isLoadingConversations,
-  conversationId,
   error,
-  debugUrl,
-  isSpeaking,
   speakingMessageId,
   getToken,
   sendMessage,
   stopRequest,
-  clearMessages,
-  createNewConversation,
-  fetchConversationList,
-  switchConversation,
   copyText,
   speakText,
   stopSpeaking
@@ -39,7 +23,6 @@ const inputContent = ref('')
 const messageListRef = ref<HTMLElement | null>(null)
 const textareaRef = ref<HTMLTextAreaElement | null>(null)
 const expandBtnRef = ref<HTMLButtonElement | null>(null)
-const showHistoryPanel = ref(false)
 const thinkingSeconds = ref(0)
 const finalThinkingTime = ref<number | null>(null)
 const copiedMessageId = ref<string | null>(null)
@@ -92,6 +75,33 @@ const startThinkingTimer = () => {
   }, 1000)
 }
 
+const markdownReady = ref(false)
+let markdownLoading = false
+let markdownRenderer: ((content: string) => string) | null = null
+
+const loadMarkdown = async () => {
+  if (markdownLoading || markdownRenderer) return
+  markdownLoading = true
+  try {
+    const [{ marked }, { default: createDOMPurify }] = await Promise.all([
+      import('marked'),
+      import('dompurify')
+    ])
+    marked.setOptions({
+      breaks: true,
+      gfm: true
+    })
+    const purifier = createDOMPurify(window)
+    markdownRenderer = (content: string) => {
+      const html = marked.parse(content)
+      return purifier.sanitize(html, { USE_PROFILES: { html: true } })
+    }
+    markdownReady.value = true
+  } finally {
+    markdownLoading = false
+  }
+}
+
 const stopThinkingTimer = () => {
   if (thinkingTimer) {
     clearInterval(thinkingTimer)
@@ -100,27 +110,19 @@ const stopThinkingTimer = () => {
   }
 }
 
-marked.setOptions({
-  breaks: true,
-  gfm: true
-})
-
 const renderMarkdown = (content: string) => {
   if (!content) return ''
-  const html = marked.parse(content)
-  return DOMPurify.sanitize(html, { USE_PROFILES: { html: true } })
+  if (!markdownReady.value) {
+    if (!markdownLoading) void loadMarkdown()
+    return content
+  }
+  return markdownRenderer ? markdownRenderer(content) : content
 }
 
 const isThinking = computed(() => {
   if (!isLoading.value) return false
   const lastMsg = messages.value[messages.value.length - 1]
   return lastMsg && lastMsg.role === 'assistant' && lastMsg.content === ''
-})
-
-watch(debugUrl, (url) => {
-  if (url) {
-    emit('debugUrl', url)
-  }
 })
 
 // 监听加载状态，停止计时器
@@ -193,38 +195,8 @@ const handleVoiceCancel = () => {
   cancelRecording()
 }
 
-const handleNewConversation = async () => {
-  if (isLoading.value || isCreatingConversation.value) return
-  await createNewConversation()
-}
-
 const clearScreen = () => {
-  // 只清空屏幕上的消息，不改变 conversationId
   messages.value = []
-}
-
-const handleOpenHistory = async () => {
-  showHistoryPanel.value = true
-  await fetchConversationList()
-}
-
-const handleSelectConversation = async (convId: string) => {
-  await switchConversation(convId)
-  showHistoryPanel.value = false
-}
-
-const formatTime = (timestamp: number) => {
-  const date = new Date(timestamp)
-  const now = new Date()
-  const diff = now.getTime() - timestamp
-  
-  if (diff < 60000) return '刚刚'
-  if (diff < 3600000) return `${Math.floor(diff / 60000)} 分钟前`
-  if (diff < 86400000) return `${Math.floor(diff / 3600000)} 小时前`
-  if (date.getFullYear() === now.getFullYear()) {
-    return `${date.getMonth() + 1}/${date.getDate()}`
-  }
-  return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`
 }
 
 watch(messages, async () => {
@@ -257,80 +229,15 @@ watch(inputContent, async () => {
         </div>
       </div>
       <div class="header-actions">
-        <button 
-          class="history-btn" 
-          @click="handleOpenHistory" 
-          :disabled="isLoadingConversations"
-          title="历史对话"
-        >
-          <svg v-if="!isLoadingConversations" width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
-            <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-          </svg>
-          <span v-else class="mini-loader"></span>
-        </button>
-        <button
-          class="new-chat-btn"
-          @click="handleNewConversation"
-          :disabled="isLoading || isCreatingConversation"
-          title="新建对话"
-        >
-          <svg v-if="!isCreatingConversation" width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-          <span v-else class="mini-loader"></span>
-        </button>
-        <button class="clear-btn" @click="clearScreen" title="清屏">
+        <button class="clear-btn" @click="clearScreen" title="清空对话">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-            <!-- 扫把柄 -->
             <line x1="18" y1="3" x2="9" y2="12" stroke-linecap="round"/>
-            <!-- 扫把头 -->
             <path d="M9 12L6 15M9 12L8 16M9 12L12 14" stroke-linecap="round"/>
             <path d="M6 15L4 19M8 16L7 20M12 14L13 18" stroke-linecap="round"/>
           </svg>
         </button>
       </div>
     </div>
-
-    <!-- 历史对话面板 -->
-    <div v-if="showHistoryPanel" class="history-panel">
-      <div class="history-header">
-        <span class="history-title">历史对话</span>
-        <button class="history-close" @click="showHistoryPanel = false">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-        </button>
-      </div>
-      <div class="history-list">
-        <div v-if="isLoadingConversations" class="history-loading">
-          <span class="mini-loader"></span>
-          <span>加载中...</span>
-        </div>
-        <div v-else-if="conversations.length === 0" class="history-empty">
-          暂无历史对话
-        </div>
-        <div
-          v-else
-          v-for="conv in conversations"
-          :key="conv.id"
-          :class="['history-item', { active: conv.id === conversationId }]"
-          @click="handleSelectConversation(conv.id)"
-        >
-          <div class="history-item-icon">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-              <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <div class="history-item-content">
-            <span class="history-item-name">{{ conv.name }}</span>
-            <span class="history-item-time">{{ formatTime(conv.updated_at) }}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div v-if="showHistoryPanel" class="history-backdrop" @click="showHistoryPanel = false"></div>
-
     <div ref="messageListRef" class="message-list">
       <div v-if="messages.length === 0" class="empty-state">
         <div class="empty-illustration">

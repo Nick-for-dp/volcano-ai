@@ -9,14 +9,6 @@ export interface ChatMessage {
   isStreaming?: boolean
 }
 
-// 会话类型
-export interface Conversation {
-  id: string
-  name: string
-  created_at: number
-  updated_at: number
-}
-
 // SSE 事件类型 - 收紧定义
 type SSEEventType =
   | 'conversation.chat.created'
@@ -30,7 +22,6 @@ type SSEEventType =
 interface SSEChatCreatedData {
   conversation_id: string
   chat_id: string
-  debug_url?: string
 }
 
 interface SSEMessageDeltaData {
@@ -43,10 +34,6 @@ interface SSEChatFailedData {
   status: string
   code?: number
   msg?: string
-}
-
-interface SSEDoneData {
-  debug_url?: string
 }
 
 // 类型守卫
@@ -81,14 +68,9 @@ export function useCozeChat(sessionName: string) {
 
   // 状态
   const messages = ref<ChatMessage[]>([])
-  const conversations = ref<Conversation[]>([])
   const isLoading = ref(false)
-  const isLoadingHistory = ref(false)
-  const isCreatingConversation = ref(false)
-  const isLoadingConversations = ref(false)
   const conversationId = ref<string | null>(null)
   const error = ref<string | null>(null)
-  const debugUrl = ref<string | null>(null)
   const currentChatId = ref<string | null>(null)
 
   // 用于中止请求
@@ -228,23 +210,6 @@ export function useCozeChat(sessionName: string) {
     initChatSession()
   })
 
-  // 获取对话列表
-  const fetchConversationList = async () => {
-    // 暂不实现列表获取，因为 S2S 模式下暂未开放此接口，且当前 UI 似乎不需要
-    // 如需实现，需在后端增加对应代理接口
-    console.warn('[Chat] fetchConversationList not implemented for S2S mode yet.')
-  }
-
-  // 切换对话
-  const switchConversation = async (convId: string) => {
-    if (convId === conversationId.value) return
-
-    conversationId.value = convId
-    saveConversationId(convId)
-    messages.value = []
-    await fetchMessageHistory(convId)
-  }
-
   // 封装带 401 重试的 fetch
   const authorizedFetch = async (url: string, options: RequestInit = {}): Promise<Response> => {
     let token = await getToken()
@@ -278,7 +243,6 @@ export function useCozeChat(sessionName: string) {
     if (!targetId) return
 
     try {
-      isLoadingHistory.value = true
       const backendUrl = getBackendUrl()
       
       // 使用带重试的 fetch
@@ -307,43 +271,6 @@ export function useCozeChat(sessionName: string) {
     } catch (e) {
       console.error('[Chat] Fetch history failed:', e)
       error.value = '获取历史消息失败'
-    } finally {
-      isLoadingHistory.value = false
-    }
-  }
-
-  // 创建新会话
-  const createNewConversation = async () => {
-    try {
-      isCreatingConversation.value = true
-      error.value = null
-
-      const backendUrl = getBackendUrl()
-      const response = await authorizedFetch(`${backendUrl}/api/chat/conversation/create`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({})
-      })
-
-      if (!response.ok) throw new Error(`HTTP ${response.status}`)
-
-      const result = await response.json()
-      if (result.code === 0 && result.data?.id) {
-        messages.value = []
-        conversationId.value = result.data.id
-        saveConversationId(result.data.id)
-        return result.data.id
-      } else {
-        throw new Error(result.msg || 'Create conversation failed')
-      }
-    } catch (e) {
-      console.error('[Chat] Create conversation failed:', e)
-      error.value = '创建会话失败'
-      return null
-    } finally {
-      isCreatingConversation.value = false
     }
   }
 
@@ -376,22 +303,6 @@ export function useCozeChat(sessionName: string) {
     }
   }
 
-  // 清空对话
-  const clearMessages = () => {
-    messages.value = []
-    conversationId.value = null
-    clearStoredConversation()
-    error.value = null
-  }
-
-  // 统一处理 debug_url（消除重复）
-  const handleDebugUrl = (url: string) => {
-    debugUrl.value = url
-    // 安全的 postMessage：只发给同源父窗口，如果是跨域 iframe 则需要配置具体域名
-    const targetOrigin = window.location.origin
-    window.parent.postMessage({ type: 'coze-debug-url', debugUrl: url }, targetOrigin)
-  }
-
   // SSE 事件处理器（从 sendMessage 拆分出来）
   const processSSEEvent = (event: SSEEventType, data: unknown) => {
     console.log('[SSE Debug]', event, data) // Debug logging
@@ -401,7 +312,6 @@ export function useCozeChat(sessionName: string) {
           conversationId.value = data.conversation_id
           saveConversationId(data.conversation_id)
           currentChatId.value = data.chat_id
-          if (data.debug_url) handleDebugUrl(data.debug_url)
         }
         break
 
@@ -429,12 +339,9 @@ export function useCozeChat(sessionName: string) {
         currentChatId.value = null
         break
 
-      case 'done': {
-        const doneData = data as SSEDoneData
-        if (doneData.debug_url) handleDebugUrl(doneData.debug_url)
+      case 'done':
         currentChatId.value = null
         break
-      }
 
       case 'error': {
         const errData = data as any
@@ -463,7 +370,6 @@ export function useCozeChat(sessionName: string) {
 
     error.value = null
     isLoading.value = true
-    debugUrl.value = null
     currentChatId.value = null
 
     abortController = new AbortController()
@@ -831,23 +737,14 @@ export function useCozeChat(sessionName: string) {
 
   return {
     messages,
-    conversations,
     isLoading,
-    isLoadingHistory,
-    isCreatingConversation,
-    isLoadingConversations,
     conversationId,
     error,
-    debugUrl,
     isSpeaking,
     speakingMessageId,
     getToken,
     sendMessage,
     stopRequest,
-    clearMessages,
-    createNewConversation,
-    fetchConversationList,
-    switchConversation,
     copyText,
     speakText,
     stopSpeaking

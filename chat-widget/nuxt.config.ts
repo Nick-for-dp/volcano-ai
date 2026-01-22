@@ -1,4 +1,7 @@
-// https://nuxt.com/docs/api/configuration/nuxt-config
+import { fileURLToPath } from 'url'
+
+const devManifestPath = fileURLToPath(new URL('./.nuxt/manifest/meta/dev.json', import.meta.url))
+
 export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
@@ -25,5 +28,8 @@ export default defineNuxtConfig({
   },
 
   // TODO [生产环境] 如需 SEO，考虑启用 SSR
-  ssr: false
+  ssr: false,
+  alias: process.env.NODE_ENV === 'development'
+    ? { '#app-manifest': devManifestPath }
+    : {}
 })

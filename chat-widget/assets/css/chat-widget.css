@@ -6,7 +6,7 @@
   flex-direction: column;
   height: 100%;
   font-family: 'Noto Sans SC', sans-serif;
-  background: #fdfcfa;
+  background: #fff;
   container-type: size;
   position: relative;
 }
@@ -33,7 +33,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #e57364, #d4574a);
+  background: linear-gradient(135deg, #4aa3ff, #2f8bff);
   border-radius: 10px;
   color: #fff;
 }
@@ -52,7 +52,7 @@
 
 .header-info .status {
   font-size: 11px;
-  color: #2d9587;
+  color: #4aa3ff;
 }
 
 .header-actions {
@@ -80,8 +80,8 @@
 .history-btn:hover,
 .new-chat-btn:hover,
 .clear-btn:hover {
-  background: #f5f0ea;
-  color: #e57364;
+  background: #e8f3ff;
+  color: #2f8bff;
 }
 
 .history-btn:disabled,
@@ -98,7 +98,7 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
-  background: linear-gradient(180deg, #fdfcfa 0%, #faf7f2 100%);
+  background: #fff;
 }
 
 /* Empty State */
@@ -161,12 +161,13 @@
 }
 
 .message-row.user .avatar {
-  background: linear-gradient(135deg, #2d9587, #248f7a);
-  color: #fff;
+  background: #fff;
+  color: #2f8bff;
+  border: 1px solid #e8e3db;
 }
 
 .message-row.assistant .avatar {
-  background: linear-gradient(135deg, #e57364, #d4574a);
+  background: linear-gradient(135deg, #4aa3ff, #2f8bff);
   color: #fff;
 }
 
@@ -181,8 +182,9 @@
 }
 
 .message-row.user .bubble {
-  background: linear-gradient(135deg, #2d9587, #248f7a);
+  background: linear-gradient(135deg, #4aa3ff, #2f8bff);
   color: #fff;
+  border: none;
   border-bottom-right-radius: 4px;
 }
 
@@ -199,7 +201,7 @@
   display: inline-block;
   width: 2px;
   height: 14px;
-  background: #e57364;
+  background: #4aa3ff;
   margin-left: 2px;
   animation: blink 0.7s infinite;
   vertical-align: middle;
@@ -225,7 +227,7 @@
 .dot-loader span {
   width: 7px;
   height: 7px;
-  background: #e57364;
+  background: #4aa3ff;
   border-radius: 50%;
   animation: bounce 1.2s infinite;
 }
@@ -241,10 +243,10 @@
 /* Error Message */
 .error-msg {
   padding: 10px 14px;
-  background: rgba(229, 115, 100, 0.1);
-  border: 1px solid rgba(229, 115, 100, 0.2);
+  background: rgba(74, 163, 255, 0.12);
+  border: 1px solid rgba(74, 163, 255, 0.22);
   border-radius: 10px;
-  color: #d4574a;
+  color: #2f8bff;
   font-size: 12px;
   text-align: center;
 }
@@ -252,7 +254,7 @@
 /* Input Area */
 .input-area {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   gap: 8px;
   padding: 14px 16px;
   background: #fff;
@@ -263,12 +265,12 @@
 /* Mic Button */
 .mic-btn {
   width: 38px;
-  height: 38px;
+  height: 40px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f8f5f0;
+  background: #fff;
   border: 1px solid #e8e3db;
   border-radius: 10px;
   color: #888;
@@ -282,7 +284,7 @@
 }
 
 .mic-btn.recording {
-  background: linear-gradient(135deg, #e57364, #d4574a);
+  background: linear-gradient(135deg, #4aa3ff, #2f8bff);
   border-color: transparent;
   color: #fff;
 }
@@ -323,14 +325,17 @@
 .text-input-wrap {
   flex: 1;
   position: relative;
+  display: flex;
+  align-items: stretch;
 }
 
 .text-input-wrap textarea {
   width: 100%;
-  min-height: 38px;
+  min-height: 40px;
   max-height: 56px;
+  height: 40px;
   box-sizing: border-box;
-  background: #f8f5f0;
+  background: #fff;
   border: 1px solid #e8e3db;
   border-radius: 10px;
   padding: 10px 14px;
@@ -387,7 +392,7 @@
 
 .text-input-wrap textarea:focus {
   outline: none;
-  border-color: #2d9587;
+  border-color: #4aa3ff;
   background: #fff;
 }
 
@@ -398,23 +403,23 @@
 /* Send Button */
 .send-btn {
   width: 38px;
-  height: 38px;
+  height: 40px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #e57364, #d4574a);
+  background: linear-gradient(135deg, #4aa3ff, #2f8bff);
   border: none;
   border-radius: 10px;
   color: #fff;
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: 0 2px 6px rgba(229, 115, 100, 0.25);
+  box-shadow: 0 2px 6px rgba(74, 163, 255, 0.3);
 }
 
 .send-btn:hover:not(:disabled) {
   transform: scale(1.04);
-  box-shadow: 0 3px 10px rgba(229, 115, 100, 0.35);
+  box-shadow: 0 3px 10px rgba(74, 163, 255, 0.4);
 }
 
 .send-btn:disabled {
@@ -459,7 +464,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 8px;
-  background: linear-gradient(135deg, #e57364, #d4574a);
+  background: linear-gradient(135deg, #4aa3ff, #2f8bff);
   color: #fff;
 }
 
@@ -468,15 +473,15 @@
   align-items: center;
   gap: 6px;
   padding: 10px 16px;
-  background: linear-gradient(135deg, rgba(229, 115, 100, 0.08), rgba(212, 87, 74, 0.05));
-  border: 1px solid rgba(229, 115, 100, 0.15);
+  background: linear-gradient(135deg, rgba(74, 163, 255, 0.12), rgba(47, 139, 255, 0.06));
+  border: 1px solid rgba(74, 163, 255, 0.2);
   border-radius: 14px;
   border-bottom-left-radius: 4px;
 }
 
 .thinking-text {
   font-size: 13px;
-  color: #e57364;
+  color: #2f8bff;
   font-weight: 500;
 }
 
@@ -488,7 +493,7 @@
 .thinking-dots span {
   width: 5px;
   height: 5px;
-  background: #e57364;
+  background: #4aa3ff;
   border-radius: 50%;
   animation: thinkBounce 1.4s infinite ease-in-out both;
 }
@@ -510,7 +515,7 @@
 
 .thinking-time {
   font-size: 12px;
-  color: #e57364;
+  color: #2f8bff;
   opacity: 0.8;
   margin-left: 4px;
   font-variant-numeric: tabular-nums;
@@ -522,17 +527,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(229, 115, 100, 0.15);
+  background: rgba(74, 163, 255, 0.18);
   border: none;
   border-radius: 6px;
-  color: #e57364;
+  color: #2f8bff;
   cursor: pointer;
   margin-left: 8px;
   transition: all 0.2s;
 }
 
 .stop-btn:hover {
-  background: #e57364;
+  background: #2f8bff;
   color: #fff;
 }
 
@@ -565,12 +570,12 @@
 }
 
 .markdown-content code {
-  background: rgba(229, 115, 100, 0.1);
+  background: rgba(74, 163, 255, 0.12);
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 12px;
   font-family: 'Fira Code', 'Monaco', monospace;
-  color: #d4574a;
+  color: #2f8bff;
 }
 
 .markdown-content pre {
@@ -601,13 +606,13 @@
 .markdown-content blockquote {
   margin: 8px 0;
   padding: 8px 12px;
-  border-left: 3px solid #e57364;
-  background: rgba(229, 115, 100, 0.05);
+  border-left: 3px solid #4aa3ff;
+  background: rgba(74, 163, 255, 0.08);
   border-radius: 0 6px 6px 0;
 }
 
 .markdown-content a {
-  color: #2d9587;
+  color: #2f8bff;
   text-decoration: none;
 }
 
@@ -830,16 +835,16 @@
 }
 
 .action-btn.copied {
-  color: #2d9587;
+  color: #2f8bff;
 }
 
 .action-btn.speaking {
-  background: rgba(229, 115, 100, 0.1);
-  color: #e57364;
+  background: rgba(74, 163, 255, 0.14);
+  color: #2f8bff;
 }
 
 .action-btn.speaking:hover {
-  background: rgba(229, 115, 100, 0.2);
+  background: rgba(74, 163, 255, 0.22);
 }
 
 /* Cancel Button (录音取消) */
@@ -859,9 +864,9 @@
 }
 
 .cancel-btn:hover {
-  background: #fee;
-  border-color: #e57364;
-  color: #e57364;
+  background: #e8f3ff;
+  border-color: #4aa3ff;
+  color: #2f8bff;
 }
 
 /* Voice Status in Input */
@@ -900,11 +905,11 @@
 
 /* Recording state for send button */
 .send-btn.recording {
-  background: linear-gradient(135deg, #2d9587, #248f7a);
+  background: linear-gradient(135deg, #4aa3ff, #2f8bff);
 }
 
 .send-btn.recording:hover:not(:disabled) {
-  box-shadow: 0 3px 10px rgba(45, 149, 135, 0.35);
+  box-shadow: 0 3px 10px rgba(74, 163, 255, 0.4);
 }
 
 /* Text input wrap recording state */
